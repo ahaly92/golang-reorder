@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/ahaly92/golang-reorder/drivers/sql"
 	"github.com/ahaly92/golang-reorder/pkg/models"
@@ -100,6 +101,16 @@ func (pgClient postgresClient) ReorderApplicationList(input models.ApplicationLi
 	if len(rows.Values) == 0 {
 		_, _ = pgClient.pgxDriverWriter.Exec(context.Background(), fmt.Sprintf(insertApplicationInList, input.UserID, input.ApplicationID, maxPosition+1))
 		rows, _ = pgClient.pgxDriverWriter.Query(context.Background(), fmt.Sprintf(getApplicationListItem, input.UserID, input.ApplicationID))
+		if input.DesiredPosition > maxPosition+1 {
+			input.DesiredPosition = maxPosition + 1
+		}
+		if len(rows.Values) == 0 {
+			return errors.New("unable to add application to list")
+		}
+	} else {
+		if input.DesiredPosition > maxPosition {
+			input.DesiredPosition = maxPosition
+		}
 	}
 
 	applicationListItem := models.ApplicationList{}
@@ -108,10 +119,6 @@ func (pgClient postgresClient) ReorderApplicationList(input models.ApplicationLi
 		&applicationListItem.ApplicationID,
 		&applicationListItem.Position,
 	)
-
-	if input.DesiredPosition > maxPosition+1 {
-		input.DesiredPosition = maxPosition + 1
-	}
 
 	if applicationListItem.Position != input.DesiredPosition {
 		// move to position 0

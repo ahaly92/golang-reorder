@@ -20,7 +20,7 @@ func ReorderApplicationList(context *gin.Context, applicationListService service
 		return
 	}
 	context.JSON(http.StatusOK, gin.H{
-		"message": "application added to ApplicationList!",
+		"message": "application added/reordered to user's application list",
 	})
 }
 
