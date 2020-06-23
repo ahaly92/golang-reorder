@@ -2,9 +2,8 @@
 -- +goose StatementBegin
 SELECT 'up SQL query';
 CREATE TABLE users (
-    id int NOT NULL,
-    first_name text,
-    last_name text,
+    id SERIAL,
+    name text,
     PRIMARY KEY(id)
 );
 -- +goose StatementEnd

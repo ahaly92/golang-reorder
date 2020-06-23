@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 SELECT 'up SQL query';
 CREATE TABLE todos (
-    id int NOT NULL,
+    id SERIAL,
     description text,
     PRIMARY KEY(id)
 );
