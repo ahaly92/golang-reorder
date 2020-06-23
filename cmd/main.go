@@ -13,17 +13,17 @@ func main() {
 	postgresClient, _ := repository.NewClient()
 
 	userService := services.NewUserService(postgresClient)
-	todoService := services.NewTodoService(postgresClient)
-	todoListService := services.NewTodoListService(postgresClient)
+	applicationService := services.NewApplicationService(postgresClient)
+	applicationListService := services.NewApplicationListService(postgresClient)
 
 	ginEngine.GET("/users", func(context *gin.Context) { Users(context, userService) })
 	ginEngine.POST("/user", func(context *gin.Context) { AddUser(context, userService) })
 
-	ginEngine.POST("/todo", func(context *gin.Context) { AddTodo(context, todoService) })
-	ginEngine.DELETE("/todo/:id", func(context *gin.Context) { DeleteTodo(context, todoService) })
+	ginEngine.POST("/application", func(context *gin.Context) { AddApplication(context, applicationService) })
+	ginEngine.DELETE("/application/:id", func(context *gin.Context) { DeleteApplication(context, applicationService) })
 
-	ginEngine.POST("/todoList", func(context *gin.Context) { MoveTodoToInList(context, todoListService) })
-	ginEngine.GET("/todoList/:id", func(context *gin.Context) { GetTodoListForUser(context, todoListService) })
+	ginEngine.POST("/applicationList", func(context *gin.Context) { ReorderApplicationList(context, applicationListService) })
+	ginEngine.GET("/applicationList/:id", func(context *gin.Context) { GetApplicationListForUser(context, applicationListService) })
 
 	_ = ginEngine.Run(":4000")
 }

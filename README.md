@@ -7,9 +7,9 @@ Updating a backend/database display order with drag and drop in SQL
 # Models - pkg/models/
 User 
 
-Todo
+Application
 
-TodoList
+ApplicationList
 
 # Running Server
 To run the server run:

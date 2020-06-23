@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
 SELECT 'up SQL query';
-CREATE TABLE todos (
+CREATE TABLE applications (
     id SERIAL,
     description text,
     PRIMARY KEY(id)
@@ -11,5 +11,5 @@ CREATE TABLE todos (
 -- +goose Down
 -- +goose StatementBegin
 SELECT 'down SQL query';
-DROP TABLE todos;
+DROP TABLE applications;
 -- +goose StatementEnd

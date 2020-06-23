@@ -8,10 +8,10 @@ import (
 type Client interface {
 	GetAllUsers() (users []*models.User, err error)
 	AddUser(user models.User) (err error)
-	AddTodo(description string) error
-	DeleteTodo(todoId int32) error
-	MoveTodoToInList(input models.TodoListInput) error
-	GetTodoListForUser(userId int32) (todoListItems []*models.TodoList, err error)
+	AddApplication(description string) error
+	DeleteApplication(applicationId int32) error
+	ReorderApplicationList(input models.ApplicationListInput) error
+	GetApplicationListForUser(userId int32) (applicationListItems []*models.ApplicationList, err error)
 }
 
 func NewClient() (Client, error) {

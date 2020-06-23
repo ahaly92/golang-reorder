@@ -5,17 +5,19 @@ const (
 
 	addUser = "INSERT INTO " + usersTableName + "(id, name) VALUES('%d', '%s')"
 
-	addTodo    = "INSERT INTO " + todosTableName + "(description) VALUES('%s')"
-	deleteTodo = "DELETE FROM " + todosTableName + " WHERE id='%d'"
+	addApplication    = "INSERT INTO " + applicationsTableName + "(description) VALUES('%s')"
+	deleteApplication = "DELETE FROM " + applicationsTableName + " WHERE id='%d'"
 
-	getTodoListItemsForUser = "SELECT * FROM " + todoListTableName + " WHERE user_id='%d'"
+	getApplicationListItemsForUser = "SELECT * FROM " + applicationListTableName + " WHERE user_id='%d'"
 
-	getTodoListItem         = "SELECT * FROM " + todoListTableName + " WHERE user_id='%d' and todo_id='%d'"
-	setTodoListItemPosition = "UPDATE " + todoListTableName + " SET position = '%d' WHERE position = '%d' AND user_id = 0;"
-	shiftTodoListItemsDown  = "UPDATE todo_lists SET position = (position - 1) WHERE position > '%d' AND position <= '%d' AND user_id = user_id;"
-	shiftTodoListItemsUp    = "UPDATE todo_lists SET position = (position + 1) WHERE position >= '%d' AND position < '%d' AND user_id = user_id;"
+	getApplicationListItem         = "SELECT * FROM " + applicationListTableName + " WHERE user_id='%d' and application_id='%d'"
+	getMaxItems                    = "SELECT MAX(position) FROM " + applicationListTableName + " WHERE user_id='%d'"
+	insertApplicationInList        = "INSERT INTO " + applicationListTableName + "(user_id, application_id, position) VALUES('%d', '%d', '%d')"
+	setApplicationListItemPosition = "UPDATE " + applicationListTableName + " SET position = '%d' WHERE position = '%d' AND user_id = '%d';"
+	shiftApplicationListItemsDown  = "UPDATE application_lists SET position = (position - 1) WHERE position > '%d' AND position <= '%d' AND user_id = user_id;"
+	shiftApplicationListItemsUp    = "UPDATE application_lists SET position = (position + 1) WHERE position >= '%d' AND position < '%d' AND user_id = user_id;"
 
-	usersTableName    = "users"
-	todosTableName    = "todos"
-	todoListTableName = "todo_lists"
+	usersTableName           = "users"
+	applicationsTableName    = "applications"
+	applicationListTableName = "application_lists"
 )

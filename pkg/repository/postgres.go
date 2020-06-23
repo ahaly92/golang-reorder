@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/ahaly92/golang-reorder/drivers/sql"
 	"github.com/ahaly92/golang-reorder/pkg/models"
@@ -39,25 +38,25 @@ func (pgClient postgresClient) GetAllUsers() (users []*models.User, err error) {
 	return users, nil
 }
 
-func (pgClient postgresClient) GetTodoListForUser(userId int32) (todoListItems []*models.TodoList, err error) {
-	rows, err := pgClient.pgxDriverReader.Query(context.Background(), fmt.Sprintf(getTodoListItemsForUser, userId))
+func (pgClient postgresClient) GetApplicationListForUser(userId int32) (applicationListItems []*models.ApplicationList, err error) {
+	rows, err := pgClient.pgxDriverReader.Query(context.Background(), fmt.Sprintf(getApplicationListItemsForUser, userId))
 	if err != nil {
 		return nil, err
 	}
 	for _, row := range rows.Values {
-		todoListItem := models.TodoList{}
+		applicationListItem := models.ApplicationList{}
 		err := pgClient.pgxDriverReader.Unmarshal(row,
-			&todoListItem.UserID,
-			&todoListItem.TodoID,
-			&todoListItem.Position,
+			&applicationListItem.UserID,
+			&applicationListItem.ApplicationID,
+			&applicationListItem.Position,
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		todoListItems = append(todoListItems, &todoListItem)
+		applicationListItems = append(applicationListItems, &applicationListItem)
 	}
-	return todoListItems, nil
+	return applicationListItems, nil
 
 }
 
@@ -70,8 +69,8 @@ func (pgClient postgresClient) AddUser(user models.User) error {
 	return nil
 }
 
-func (pgClient postgresClient) AddTodo(description string) error {
-	_, err := pgClient.pgxDriverWriter.Exec(context.Background(), fmt.Sprintf(addTodo, description))
+func (pgClient postgresClient) AddApplication(description string) error {
+	_, err := pgClient.pgxDriverWriter.Exec(context.Background(), fmt.Sprintf(addApplication, description))
 
 	if err != nil {
 		return err
@@ -79,8 +78,8 @@ func (pgClient postgresClient) AddTodo(description string) error {
 	return nil
 }
 
-func (pgClient postgresClient) DeleteTodo(todoId int32) error {
-	_, err := pgClient.pgxDriverWriter.Exec(context.Background(), fmt.Sprintf(deleteTodo, todoId))
+func (pgClient postgresClient) DeleteApplication(applicationId int32) error {
+	_, err := pgClient.pgxDriverWriter.Exec(context.Background(), fmt.Sprintf(deleteApplication, applicationId))
 
 	if err != nil {
 		return err
@@ -88,35 +87,48 @@ func (pgClient postgresClient) DeleteTodo(todoId int32) error {
 	return nil
 }
 
-func (pgClient postgresClient) MoveTodoToInList(
-	input models.TodoListInput) error {
+func (pgClient postgresClient) ReorderApplicationList(input models.ApplicationListInput) error {
+	maxPositions, _ := pgClient.pgxDriverWriter.Query(context.Background(), fmt.Sprintf(getMaxItems, input.UserID))
+	var maxPosition int32 = 0
+	if len(maxPositions.Values) != 0 {
+		_ = pgClient.pgxDriverReader.Unmarshal(maxPositions.Values[0],
+			&maxPosition,
+		)
+	}
 
-	rows, _ := pgClient.pgxDriverWriter.Query(context.Background(), fmt.Sprintf(getTodoListItem, input.UserID, input.TodoID))
-
+	rows, _ := pgClient.pgxDriverWriter.Query(context.Background(), fmt.Sprintf(getApplicationListItem, input.UserID, input.ApplicationID))
 	if len(rows.Values) == 0 {
-		return errors.New("todo list item not found")
+		_, _ = pgClient.pgxDriverWriter.Exec(context.Background(), fmt.Sprintf(insertApplicationInList, input.UserID, input.ApplicationID, maxPosition+1))
+		rows, _ = pgClient.pgxDriverWriter.Query(context.Background(), fmt.Sprintf(getApplicationListItem, input.UserID, input.ApplicationID))
 	}
 
-	todoListItem := models.TodoList{}
+	applicationListItem := models.ApplicationList{}
 	_ = pgClient.pgxDriverReader.Unmarshal(rows.Values[0],
-		&todoListItem.UserID,
-		&todoListItem.TodoID,
-		&todoListItem.Position,
+		&applicationListItem.UserID,
+		&applicationListItem.ApplicationID,
+		&applicationListItem.Position,
 	)
 
-	// move to position 0
-	_, _ = pgClient.pgxDriverWriter.Exec(context.Background(), fmt.Sprintf(setTodoListItemPosition, 0, todoListItem.Position))
-
-	// shift other items in list
-	if input.DesiredPosition > todoListItem.Position {
-		_, _ = pgClient.pgxDriverWriter.Exec(context.Background(), fmt.Sprintf(shiftTodoListItemsDown, todoListItem.Position, input.DesiredPosition))
-	} else {
-		_, _ = pgClient.pgxDriverWriter.Exec(context.Background(), fmt.Sprintf(shiftTodoListItemsUp, input.DesiredPosition, todoListItem.Position))
+	if input.DesiredPosition > maxPosition+1 {
+		input.DesiredPosition = maxPosition + 1
 	}
 
-	// move to position to desired position
-	_, _ = pgClient.pgxDriverWriter.Exec(context.Background(), fmt.Sprintf(setTodoListItemPosition, input.DesiredPosition, 0))
+	if applicationListItem.Position != input.DesiredPosition {
+		// move to position 0
+		_, _ = pgClient.pgxDriverWriter.Exec(context.Background(), fmt.Sprintf(setApplicationListItemPosition, 0, applicationListItem.Position, applicationListItem.UserID))
 
-	fmt.Printf("%+v\n", todoListItem)
+		// shift other items in list
+		if input.DesiredPosition > applicationListItem.Position {
+			print("down")
+			_, _ = pgClient.pgxDriverWriter.Exec(context.Background(), fmt.Sprintf(shiftApplicationListItemsDown, applicationListItem.Position, input.DesiredPosition))
+		} else {
+			print("up")
+			_, _ = pgClient.pgxDriverWriter.Exec(context.Background(), fmt.Sprintf(shiftApplicationListItemsUp, input.DesiredPosition, applicationListItem.Position))
+		}
+
+		// move to position to desired position
+		_, _ = pgClient.pgxDriverWriter.Exec(context.Background(), fmt.Sprintf(setApplicationListItemPosition, input.DesiredPosition, 0, applicationListItem.UserID))
+	}
+
 	return nil
 }
