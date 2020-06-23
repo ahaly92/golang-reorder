@@ -9,6 +9,5 @@ type ApplicationList struct {
 type ApplicationListInput struct {
 	ApplicationID   int32 `json:"applicationId"`
 	UserID          int32 `json:"userId"`
-	Position        int32 `json:"position"`
 	DesiredPosition int32 `json:"desiredPosition"`
 }
