@@ -23,6 +23,7 @@ func main() {
 	ginEngine.DELETE("/application/:id", func(context *gin.Context) { DeleteApplication(context, applicationService) })
 
 	ginEngine.POST("/applicationList", func(context *gin.Context) { ReorderApplicationList(context, applicationListService) })
+	ginEngine.DELETE("/applicationList/:userId/:applicationId", func(context *gin.Context) { DeleteApplicationFromList(context, applicationListService) })
 	ginEngine.GET("/applicationList/:id", func(context *gin.Context) { GetApplicationListForUser(context, applicationListService) })
 
 	_ = ginEngine.Run(":4000")

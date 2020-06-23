@@ -126,16 +126,45 @@ func (pgClient postgresClient) ReorderApplicationList(input models.ApplicationLi
 
 		// shift other items in list
 		if input.DesiredPosition > applicationListItem.Position {
-			print("down")
 			_, _ = pgClient.pgxDriverWriter.Exec(context.Background(), fmt.Sprintf(shiftApplicationListItemsDown, applicationListItem.Position, input.DesiredPosition))
 		} else {
-			print("up")
 			_, _ = pgClient.pgxDriverWriter.Exec(context.Background(), fmt.Sprintf(shiftApplicationListItemsUp, input.DesiredPosition, applicationListItem.Position))
 		}
 
 		// move to position to desired position
 		_, _ = pgClient.pgxDriverWriter.Exec(context.Background(), fmt.Sprintf(setApplicationListItemPosition, input.DesiredPosition, 0, applicationListItem.UserID))
 	}
+
+	return nil
+}
+
+func (pgClient postgresClient) DeleteApplicationFromList(userId int32, applicationId int32) error {
+	maxPositions, _ := pgClient.pgxDriverWriter.Query(context.Background(), fmt.Sprintf(getMaxItems, userId))
+	var maxPosition int32 = 0
+	if len(maxPositions.Values) != 0 {
+		_ = pgClient.pgxDriverReader.Unmarshal(maxPositions.Values[0],
+			&maxPosition,
+		)
+	}
+
+	rows, _ := pgClient.pgxDriverWriter.Query(context.Background(), fmt.Sprintf(getApplicationListItem, userId, applicationId))
+
+	if len(rows.Values) == 0 {
+		return nil
+	}
+
+	applicationListItem := models.ApplicationList{}
+	_ = pgClient.pgxDriverReader.Unmarshal(rows.Values[0],
+		&applicationListItem.UserID,
+		&applicationListItem.ApplicationID,
+		&applicationListItem.Position,
+	)
+
+	//remove item
+	_, _ = pgClient.pgxDriverWriter.Exec(context.Background(), fmt.Sprintf(deleteApplicationFromApplicationList, userId, applicationId))
+
+	//shift down
+	_, _ = pgClient.pgxDriverWriter.Exec(context.Background(), fmt.Sprintf(shiftApplicationListItemsDown, applicationListItem.Position, maxPosition))
 
 	return nil
 }

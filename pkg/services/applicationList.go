@@ -8,6 +8,7 @@ import (
 type ApplicationListService interface {
 	ReorderApplicationList(input models.ApplicationListInput) error
 	GetApplicationListForUser(userId int32) (applicationListItems []*models.ApplicationList, err error)
+	DeleteApplicationFromList(userId int32, applicationId int32) error
 }
 
 func NewApplicationListService(repo repository.Client) ApplicationListService {
@@ -30,4 +31,13 @@ func (service *service) GetApplicationListForUser(userId int32) (applicationList
 	}
 
 	return applicationListItems, nil
+}
+
+func (service *service) DeleteApplicationFromList(userId int32, applicationId int32) error {
+	err := service.repo.DeleteApplicationFromList(userId, applicationId)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

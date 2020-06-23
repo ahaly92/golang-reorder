@@ -12,6 +12,7 @@ type Client interface {
 	DeleteApplication(applicationId int32) error
 	ReorderApplicationList(input models.ApplicationListInput) error
 	GetApplicationListForUser(userId int32) (applicationListItems []*models.ApplicationList, err error)
+	DeleteApplicationFromList(userId int32, applicationId int32) error
 }
 
 func NewClient() (Client, error) {
